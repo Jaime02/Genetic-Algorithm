@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from itertools import product
 
 import PIL.Image
-from PySide6.QtCore import QSettings, Slot, QObject, Signal, QThread, QPoint
+from PySide6.QtCore import QSettings, Slot, QObject, Signal, QThread, QPoint, QLocale
 from PySide6.QtGui import Qt, QIntValidator, QDoubleValidator, QShowEvent, QCloseEvent
 from PySide6.QtWidgets import (
     QMainWindow,
@@ -23,11 +23,11 @@ from PySide6.QtWidgets import (
     QProgressDialog, QMessageBox,
 )
 
-from experiment import run_experiment
-from genetic_functions import ProgenitorSelectionFunction, MutationFunction, CrossoverFunction, NamedFunction
+from genetic_algorithm.experiment import run_experiment
+from genetic_algorithm.genetic_functions import ProgenitorSelectionFunction, MutationFunction, CrossoverFunction, NamedFunction
 from gui.plot_window import PlotWindow
 from gui.results_table import ResultsTable, categories, categories_to_index
-from result import Result
+from genetic_algorithm.result import Result
 
 
 @dataclass
@@ -186,11 +186,13 @@ class MainWindow(QMainWindow):
         self.experiment_count_label = QLabel("Experiment count:")
         self.experiment_count_input = QLineEdit("5")
         self.experiment_count_input.setValidator(QIntValidator())
-        self.experiment_count_input.setMaxLength(3)
+        self.experiment_count_input.setMaxLength(6)
         self.settings_layout.addRow(self.experiment_count_label, self.experiment_count_input)
 
         self.seed_label = QLabel("Experiment seed:")
+        self.seed_label.setToolTip("A number used to initialize the pseudo-random number generator.")
         self.seed_input = QLineEdit("33")
+        self.seed_input.setToolTip("A number used to initialize the pseudo-random number generator.")
         self.seed_input.setValidator(QIntValidator())
         self.seed_input.setMaxLength(10)
         self.settings_layout.addRow(self.seed_label, self.seed_input)
@@ -239,28 +241,31 @@ class MainWindow(QMainWindow):
         self.increase_value_layout = QFormLayout()
         self.values_layout.addLayout(self.increase_value_layout)
 
+        self.integer_validator = QIntValidator()
+        self.integer_validator.setBottom(0)
+
         self.individual_count_label = QLabel("Individual count:")
         self.individual_count_input = QLineEdit("100")
-        self.individual_count_input.setValidator(QIntValidator())
-        self.individual_count_input.setMaxLength(3)
+        self.individual_count_input.setValidator(self.integer_validator)
+        self.individual_count_input.setMaxLength(6)
         self.initial_value_layout.addRow(self.individual_count_label, self.individual_count_input)
 
         self.individual_count_increase_label = QLabel("Increase by:")
         self.individual_count_increase_input = QLineEdit("20")
         self.individual_count_increase_input.setValidator(QIntValidator())
-        self.individual_count_increase_input.setMaxLength(3)
+        self.individual_count_increase_input.setMaxLength(6)
         self.increase_value_layout.addRow(self.individual_count_increase_label, self.individual_count_increase_input)
 
         self.iterations_label = QLabel("Iterations:")
         self.iterations_input = QLineEdit("100")
-        self.iterations_input.setValidator(QIntValidator())
-        self.iterations_input.setMaxLength(3)
+        self.iterations_input.setValidator(self.integer_validator)
+        self.iterations_input.setMaxLength(6)
         self.initial_value_layout.addRow(self.iterations_label, self.iterations_input)
 
         self.iterations_increase_label = QLabel("Increase by:")
         self.iterations_increase_input = QLineEdit("100")
         self.iterations_increase_input.setValidator(QIntValidator())
-        self.iterations_increase_input.setMaxLength(3)
+        self.iterations_increase_input.setMaxLength(6)
         self.increase_value_layout.addRow(self.iterations_increase_label, self.iterations_increase_input)
 
         self.positive_double_validator = QDoubleValidator()
@@ -276,24 +281,36 @@ class MainWindow(QMainWindow):
         self.negative_double_validator.setNotation(QDoubleValidator.StandardNotation)
 
         self.crossover_probability_label = QLabel("Crossover probability:")
+        self.crossover_probability_label.setToolTip("A real number between 0 and 1.")
+
         self.crossover_probability_input = QLineEdit("0.8")
+        self.crossover_probability_input.setToolTip("A real number between 0 and 1.")
         self.crossover_probability_input.setValidator(self.positive_double_validator)
         self.initial_value_layout.addRow(self.crossover_probability_label, self.crossover_probability_input)
 
         self.crossover_probability_increase_label = QLabel("Increase by:")
+        self.crossover_probability_increase_label.setToolTip("A real number between -1 and 1.")
+
         self.crossover_probability_increase_input = QLineEdit("-0.05")
+        self.crossover_probability_increase_input.setToolTip("A real number between -1 and 1.")
         self.crossover_probability_increase_input.setValidator(self.negative_double_validator)
         self.increase_value_layout.addRow(
             self.crossover_probability_increase_label, self.crossover_probability_increase_input
         )
 
         self.mutation_probability_label = QLabel("Mutation probability:")
+        self.mutation_probability_label.setToolTip("A real number between 0 and 1.")
+
         self.mutation_probability_input = QLineEdit("0.1")
+        self.mutation_probability_input.setToolTip("A real number between 0 and 1.")
         self.mutation_probability_input.setValidator(self.positive_double_validator)
         self.initial_value_layout.addRow(self.mutation_probability_label, self.mutation_probability_input)
 
         self.mutation_probability_increase_label = QLabel("Increase by:")
+        self.mutation_probability_increase_label.setToolTip("A real number between -1 and 1.")
+
         self.mutation_probability_increase_input = QLineEdit("0.05")
+        self.mutation_probability_increase_input.setToolTip("A real number between -1 and 1.")
         self.mutation_probability_increase_input.setValidator(self.negative_double_validator)
         self.increase_value_layout.addRow(
             self.mutation_probability_increase_label, self.mutation_probability_increase_input
@@ -304,6 +321,8 @@ class MainWindow(QMainWindow):
         self.experiment_settings_layout.addWidget(self.run_experiments_button)
 
         self.run_experiments_button = QPushButton("Run with all functions")
+        self.run_experiments_button.setToolTip("Runs experiments with all the possible combinations of the functions.")
+
         self.run_experiments_button.clicked.connect(self.run_experiments_with_all_functions)
         self.experiment_settings_layout.addWidget(self.run_experiments_button)
 
@@ -319,9 +338,6 @@ class MainWindow(QMainWindow):
     def filter_changed(self, checkbox: QCheckBox):
         category = checkbox.text()
         self.results_table.setColumnHidden(categories_to_index[category], not checkbox.isChecked())
-
-    def add_results(self, results: list):
-        self.results_table.add_results(results)
 
     def run_experiments_with_all_functions(self):
         self.all_experiment_settings = self.get_all_experiment_settings()

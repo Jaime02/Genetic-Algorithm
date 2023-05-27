@@ -3,8 +3,9 @@ import io
 import os
 import pickle
 from dataclasses import dataclass
+from pathlib import Path
 
-from genetic_functions import NamedFunction
+from genetic_algorithm.genetic_functions import NamedFunction
 
 
 @dataclass
@@ -23,8 +24,8 @@ class Result:
     plot: io.BytesIO
 
     @staticmethod
-    def read_result(filename: str) -> "Result":
-        return pickle.load(open(filename, "rb"))
+    def read_result(path: Path) -> "Result":
+        return pickle.load(open(path, "rb"))
 
     def save(self):
         result_hash = self.calculate_hash()
@@ -34,11 +35,12 @@ class Result:
     @staticmethod
     def read_all_results() -> list["Result"]:
         try:
-            os.mkdir("results")
+            os.mkdir("../results")
         except FileExistsError:
             pass
 
-        return [Result.read_result(f"results/{filename}") for filename in os.listdir("results")]
+        paths = (Path().parent / "results").glob("*.pickle")
+        return [Result.read_result(path) for path in paths]
 
     def to_list(self):
         return [

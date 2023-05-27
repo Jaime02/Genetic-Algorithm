@@ -5,7 +5,7 @@ import PIL.Image
 from PySide6.QtGui import QStandardItemModel, Qt, QAction, QStandardItem
 from PySide6.QtWidgets import QTableView, QAbstractItemView, QMenu, QApplication
 
-from result import Result
+from genetic_algorithm.result import Result
 
 
 categories = [
@@ -52,6 +52,8 @@ class ResultsTable(QTableView):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
 
+        self.add_results(Result.read_all_results())
+
     def delete_all_results(self):
         # Delete all files inside results/
         for file in Path("results/").glob("*.pickle"):
@@ -71,6 +73,7 @@ class ResultsTable(QTableView):
         Path(f"results/{row_hash}.pickle").unlink()
 
         self.model.removeRow(row)
+        self.results.pop(row)
         self.images.pop(row)
 
     def show_context_menu(self, position):

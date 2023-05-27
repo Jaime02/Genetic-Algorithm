@@ -224,7 +224,7 @@ class CrossoverFunction:
 
 
 def read_dat(filename: str) -> np.ndarray:
-    file = Path(__file__).parent / "datasets" / filename
+    file = Path(__file__).parent.parent / "datasets" / filename
     dataframe = pd.read_csv(file, sep=",")
     # drop first column
     dataframe = dataframe.drop(dataframe.columns[0], axis=1)

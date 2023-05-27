@@ -3,8 +3,8 @@ import io
 import matplotlib.pyplot as plt
 import numpy as np
 
-from genetic_functions import create_population, read_dat, fitness_function, NamedFunction
-from result import Result
+from genetic_algorithm.genetic_functions import create_population, read_dat, fitness_function, NamedFunction
+from genetic_algorithm.result import Result
 
 
 def run_experiment(
