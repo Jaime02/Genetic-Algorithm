@@ -35,7 +35,7 @@ class Result:
     @staticmethod
     def read_all_results() -> list["Result"]:
         try:
-            os.mkdir("../results")
+            os.mkdir("results")
         except FileExistsError:
             pass
 
