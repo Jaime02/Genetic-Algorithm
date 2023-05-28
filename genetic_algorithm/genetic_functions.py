@@ -43,11 +43,15 @@ class ProgenitorSelectionFunction:
 
     @staticmethod
     def tournament_with_replacement() -> NamedFunction:
-        return NamedFunction("Tournament with replacement", ProgenitorSelectionFunction._selection_tournament_replacement)
+        return NamedFunction(
+            "Tournament with replacement", ProgenitorSelectionFunction._selection_tournament_replacement
+        )
 
     @staticmethod
     def tournament_without_replacement() -> NamedFunction:
-        return NamedFunction("Tournament without replacement", ProgenitorSelectionFunction._selection_tournament_no_replacement)
+        return NamedFunction(
+            "Tournament without replacement", ProgenitorSelectionFunction._selection_tournament_no_replacement
+        )
 
     @staticmethod
     def _selection_roulette(data: np.ndarray, population: np.ndarray, individuals: int, k_group: int) -> np.ndarray:
@@ -58,9 +62,7 @@ class ProgenitorSelectionFunction:
         return population[indexes]
 
     @staticmethod
-    def _selection_tournament_replacement(
-            data: np.ndarray, population: np.ndarray, individuals: int, k_group: int
-    ):
+    def _selection_tournament_replacement(data: np.ndarray, population: np.ndarray, individuals: int, k_group: int):
         fitnesses = fitness_function(data, population)
 
         progenitors = np.zeros(shape=(individuals, population.shape[1]), dtype=np.float64)
@@ -75,9 +77,7 @@ class ProgenitorSelectionFunction:
         return progenitors
 
     @staticmethod
-    def _selection_tournament_no_replacement(
-            data: np.ndarray, population: np.ndarray, individuals: int, k_group: int
-    ):
+    def _selection_tournament_no_replacement(data: np.ndarray, population: np.ndarray, individuals: int, k_group: int):
         fitnesses = fitness_function(data, population)
 
         available = np.arange(population.shape[0])
@@ -118,7 +118,7 @@ class MutationFunction:
     @staticmethod
     def uniform() -> NamedFunction:
         return NamedFunction("Uniform", MutationFunction._uniform)
-    
+
     @staticmethod
     def non_uniform() -> NamedFunction:
         return NamedFunction("Non-uniform", MutationFunction._non_uniform)
@@ -167,11 +167,11 @@ class CrossoverFunction:
     @staticmethod
     def single_point() -> NamedFunction:
         return NamedFunction("Single point", CrossoverFunction._single_point)
-        
+
     @staticmethod
     def two_points() -> NamedFunction:
         return NamedFunction("Two point", CrossoverFunction._two_points)
-    
+
     @staticmethod
     def _single_point(progenitors: np.ndarray, crossover_probability: float) -> np.ndarray:
         # Crossover

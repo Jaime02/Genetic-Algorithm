@@ -6,7 +6,6 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication
 
 from gui.main_window import MainWindow
-from genetic_algorithm.result import Result
 
 
 def main():
@@ -16,7 +15,8 @@ def main():
     app.setApplicationName("Genetic Algorithm")
     app.setApplicationDisplayName("Genetic Algorithm")
     app.setWindowIcon(QPixmap("icon.png"))
-    qdarktheme.setup_theme(additional_qss=Path("stylesheet.qss").read_text())
+    stylesheet = (Path("gui") / "stylesheet.qss").read_text()
+    qdarktheme.setup_theme(additional_qss=stylesheet)
 
     window = MainWindow()
     window.show()

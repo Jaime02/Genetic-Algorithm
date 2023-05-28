@@ -20,11 +20,17 @@ from PySide6.QtWidgets import (
     QComboBox,
     QLineEdit,
     QPushButton,
-    QProgressDialog, QMessageBox,
+    QProgressDialog,
+    QMessageBox,
 )
 
 from genetic_algorithm.experiment import run_experiment
-from genetic_algorithm.genetic_functions import ProgenitorSelectionFunction, MutationFunction, CrossoverFunction, NamedFunction
+from genetic_algorithm.genetic_functions import (
+    ProgenitorSelectionFunction,
+    MutationFunction,
+    CrossoverFunction,
+    NamedFunction,
+)
 from gui.plot_window import PlotWindow
 from gui.results_table import ResultsTable, categories, categories_to_index
 from genetic_algorithm.result import Result
@@ -133,7 +139,11 @@ class MainWindow(QMainWindow):
         self.filters_widget.setLayout(self.filters_layout)
 
         def change_filter_layout_orientation():
-            if self.dockWidgetArea(self.filters_dock) in (Qt.LeftDockWidgetArea, Qt.RightDockWidgetArea, Qt.NoDockWidgetArea):
+            if self.dockWidgetArea(self.filters_dock) in (
+                Qt.LeftDockWidgetArea,
+                Qt.RightDockWidgetArea,
+                Qt.NoDockWidgetArea,
+            ):
                 self.filters_layout.setDirection(QBoxLayout.TopToBottom)
                 return
 
@@ -331,7 +341,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("window_cache.ini", QSettings.IniFormat)
 
         self.delete_results_button = QPushButton("Delete results")
-        self.delete_results_button.clicked.connect(self.results_table.delete_all_results)
+        self.delete_results_button.clicked.connect(self.results_table.main_model.delete_all_results)
         self.central_layout.addWidget(self.delete_results_button)
 
     @Slot(QCheckBox)
@@ -462,7 +472,7 @@ class MainWindow(QMainWindow):
             "Force quit",
             "Are you sure you want to force quit? This may leave the program in an unstable state.",
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
         if question != QMessageBox.Yes:
             return
@@ -482,7 +492,7 @@ class MainWindow(QMainWindow):
 
         self.progress_dialog.setLabelText(f"Running experiment {i + 1}/{self.progress_dialog.maximum()}")
         self.progress_dialog.setValue(i)
-        self.results_table.add_result(result)
+        self.results_table.main_model.add_result(result)
 
     def show_plot(self, plot: PIL.Image.Image):
         plot_window = PlotWindow(self, plot)
